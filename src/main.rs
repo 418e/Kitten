@@ -3,20 +3,67 @@ use std::fs;
 use std::io::prelude::*;
 
 fn compile(contents: &str) -> String {
-    let re = Regex::new(r"(\w+)\[([^\]]+)\]\{([^}]+)}").unwrap();
-    let caps = re.captures(contents).unwrap();
-    let tag_name = &caps[1];
-    let attrs = &caps[2];
-    let content = &caps[3];
-    let attrs: Vec<&str> = attrs.split(" ").collect();
-    let mut attr_str = String::new();
-    for attr in attrs {
-        let parts: Vec<&str> = attr.split(":").collect();
-        let attr_name = parts[0];
-        let attr_value = parts[1];
-        attr_str.push_str(&format!(" {}=\"{}\"", attr_name, attr_value));
+    let re = Regex::new(r"(\w+)\[([^\]]+)\]").unwrap();
+    let mut result = String::new();
+    let mut level = 0;
+    let mut tag = String::new();
+    let mut attrs = String::new();
+    let mut content = String::new();
+    let mut is_tag = false;
+
+    for c in contents.chars() {
+        match c {
+            '{' => {
+                level += 1;
+                is_tag = true;
+            }
+            '}' => {
+                level -= 1;
+                if level == 0 {
+                    let nested_content = compile(&content);
+                    result.push_str(&format!("<{}{}>{}</{}>", tag, attrs, nested_content, tag));
+                    tag.clear();
+                    attrs.clear();
+                    content.clear();
+                    is_tag = false;
+                }
+            }
+            _ => {
+                if level == 0 {
+                    if let Some(caps) = re.captures(&format!("{}{}", tag, c)) {
+                        tag = caps[1].to_string();
+                        attrs = caps[2].to_string();
+                        let attr_parts: Vec<&str> = attrs.split(" ").collect();
+                        let mut attr_str = String::new();
+                        for attr in attr_parts {
+                            let parts: Vec<&str> = attr.split(":").collect();
+                            let attr_name = parts[0];
+                            let attr_value = parts[1];
+                            attr_str.push_str(&format!(" {}=\"{}\"", attr_name, attr_value));
+                        }
+                        attrs = attr_str;
+                    } else {
+                        tag.push(c);
+                    }
+                } else if level == 1 && is_tag {
+                    content.push(c);
+                }
+            }
+        }
     }
-    format!("<{}{}>{}</{}>", tag_name, attr_str, content, tag_name)
+
+    if level == 0 && !tag.is_empty() {
+        if tag.ends_with(".") {
+            tag.pop();
+            result.push_str(&format!("{}", tag));
+        } else if tag.trim().len() < 1 {
+            result.push_str(" ");
+        } else {
+            result.push_str(&format!("<{}{}>{}</{}>", tag, attrs, content, tag));
+        }
+    }
+
+    result
 }
 
 fn generate(content: &str) -> std::io::Result<()> {

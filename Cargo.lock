@@ -12,8 +12,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "hi"
-version = "0.1.0"
+name = "kitten"
+version = "0.0.1"
 dependencies = [
  "regex",
 ]

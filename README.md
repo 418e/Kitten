@@ -1,12 +1,23 @@
+<div align="center">
+
+![Logo](./kitten.png)
+
 # Kitten
 
-HTML template compiler
+#### HTML template compiler
+</div>
+
+
+## Usage / Examples
 
 ```html
 // kitten
-a[href:/]{link}
+a[href:/]{link.}
 
 // html
 <a href="/">link</a>
 ```
-# Kitten
+
+## Installation
+
+Soon
