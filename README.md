@@ -1,6 +1,6 @@
 # Kitten
 
-HTML template generator
+HTML template compiler
 
 ```html
 // kitten
