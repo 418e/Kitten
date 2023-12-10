@@ -5,17 +5,19 @@
 # Kitten
 
 #### HTML template compiler
-</div>
 
+</div>
 
 ## Usage / Examples
 
 ```html
-// kitten
-a[href:/]{link.}
+// kitten 
+a[href:/]{link.} 
+div{hi.}
 
 // html
 <a href="/">link</a>
+<div>hi</div>
 ```
 
 ## Installation

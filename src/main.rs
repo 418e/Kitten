@@ -4,6 +4,7 @@ use std::io::prelude::*;
 
 fn compile(contents: &str) -> String {
     let re = Regex::new(r"(\w+)\[([^\]]+)\]").unwrap();
+    let re2 = Regex::new(r"(\w+)\[]").unwrap();
     let mut result = String::new();
     let mut level = 0;
     let mut tag = String::new();
@@ -42,6 +43,9 @@ fn compile(contents: &str) -> String {
                             attr_str.push_str(&format!(" {}=\"{}\"", attr_name, attr_value));
                         }
                         attrs = attr_str;
+                    } else if let Some(caps) = re2.captures(&format!("{}", tag)) {
+                        tag = caps[1].to_string();
+                        attrs = "".to_string();
                     } else {
                         tag.push(c);
                     }
