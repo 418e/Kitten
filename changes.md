@@ -1,5 +1,12 @@
 # Change Log
 
+## [[0.0.4]](https://github.com/418e/Kitten/commits/main/) - 11-12-2023
+
+- fixed errs
+- better errs
+- optimized codes
+- compiler can now red multiple elements
+
 ## [[0.0.3]](https://github.com/418e/Kitten/commits/main/) - 11-12-2023
 
 - turned regexs into the actual compiler

@@ -1,5 +1,6 @@
 use std::fs;
 
+#[derive(PartialEq)]
 enum Token {
     Tag(String),
     OpenBracket,
@@ -77,55 +78,60 @@ fn lexer(input: &str) -> Vec<Token> {
     tokens
 }
 
-fn parser(tokens: Vec<Token>) -> String {
+fn parser(tokens: Vec<Token>) -> Result<String, String> {
     let mut output = String::new();
     let mut iter = tokens.into_iter().peekable();
-    let mut current_tag = String::new();
+    let mut tag_stack = Vec::new();
 
     while let Some(token) = iter.next() {
         match token {
             Token::Tag(tag) => {
-                current_tag = tag.clone();
+                tag_stack.push(tag.clone());
                 output.push_str(&format!("<{}", tag));
             }
             Token::OpenBracket => {
+                let mut attributes = String::new();
                 while let Some(&Token::Attribute(_)) = iter.peek() {
                     if let Token::Attribute(attr) = iter.next().unwrap() {
-                        output.push_str(&format!(" {}=\"", attr));
+                        attributes.push_str(&format!(" {}=\"", attr));
                     }
                     if let Token::Value(val) = iter.next().unwrap() {
-                        output.push_str(&format!("{}\"", val));
+                        attributes.push_str(&format!("{}\"", val));
                     }
                 }
+                output.push_str(&attributes);
                 output.push('>');
             }
             Token::Content(content) => {
                 output.push_str(&content);
-                output.push_str(&format!("</{}>", current_tag));
-                current_tag.clear();
-            }
-            Token::CloseBracket => {
-                if current_tag.is_empty() {
-                    if let Some(&Token::Tag(ref tag)) = iter.peek() {
-                        output.push_str(&format!("<{}>", tag));
-                        iter.next();
-                    }
+                if let Some(tag) = tag_stack.pop() {
+                    output.push_str(&format!("</{}>", tag));
                 }
             }
             _ => {}
         }
     }
 
-    output
+    if !tag_stack.is_empty() {
+        return Err("Mismatched tags".to_string());
+    }
+
+    Ok(output)
 }
 
-fn generate_html(input: &str) -> String {
+fn generate_html(input: &str) -> Result<String, String> {
     let tokens = lexer(input);
     parser(tokens)
 }
 
 fn main() {
     let input = fs::read_to_string("test/index.kitten").expect("Could not read file");
-    let output = generate_html(&input);
+    let output = match generate_html(&input) {
+        Ok(html) => html,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return;
+        }
+    };
     fs::write("test/index.html", output).expect("Could not write file");
 }

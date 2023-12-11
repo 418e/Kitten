@@ -12,8 +12,8 @@
 
 ```html
 // kitten 
-a[href:/]{link.} 
-div{hi.}
+a[href:/]{link} 
+div[]{hi}
 
 // html
 <a href="/">link</a>
