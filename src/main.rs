@@ -1,90 +1,131 @@
-use regex::Regex;
 use std::fs;
-use std::io::prelude::*;
 
-fn compile(contents: &str) -> String {
-    let re = Regex::new(r"(\w+)\[([^\]]+)\]").unwrap();
-    let re2 = Regex::new(r"(\w+)\[]").unwrap();
-    let mut result = String::new();
-    let mut level = 0;
-    let mut tag = String::new();
-    let mut attrs = String::new();
-    let mut content = String::new();
-    let mut is_tag = false;
+enum Token {
+    Tag(String),
+    OpenBracket,
+    CloseBracket,
+    Attribute(String),
+    Value(String),
+    Content(String),
+}
 
-    for c in contents.chars() {
+fn lexer(input: &str) -> Vec<Token> {
+    let mut tokens = Vec::new();
+    let mut chars = input.chars().peekable();
+
+    while let Some(&c) = chars.peek() {
         match c {
-            '{' => {
-                level += 1;
-                is_tag = true;
+            '[' => {
+                tokens.push(Token::OpenBracket);
+                chars.next();
             }
-            '}' => {
-                level -= 1;
-                if level == 0 {
-                    let nested_content = compile(&content);
-                    result.push_str(&format!("<{}{}>{}</{}>", tag, attrs, nested_content, tag));
-                    tag.clear();
-                    attrs.clear();
-                    content.clear();
-                    is_tag = false;
+            ']' => {
+                tokens.push(Token::CloseBracket);
+                chars.next();
+            }
+            '{' => {
+                chars.next();
+                let mut content = String::new();
+                while let Some(&c) = chars.peek() {
+                    if c != '}' {
+                        content.push(c);
+                        chars.next();
+                    } else {
+                        break;
+                    }
                 }
+                tokens.push(Token::Content(content));
+                chars.next();
+            }
+            ':' => {
+                chars.next();
+                let mut value = String::new();
+                while let Some(&c) = chars.peek() {
+                    if c != ' ' && c != ']' {
+                        value.push(c);
+                        chars.next();
+                    } else {
+                        break;
+                    }
+                }
+                tokens.push(Token::Value(value));
+            }
+            ' ' | '\n' | '\t' => {
+                chars.next();
             }
             _ => {
-                if level == 0 {
-                    if let Some(caps) = re.captures(&format!("{}{}", tag, c)) {
-                        tag = caps[1].to_string();
-                        attrs = caps[2].to_string();
-                        let attr_parts: Vec<&str> = attrs.split(" ").collect();
-                        let mut attr_str = String::new();
-                        for attr in attr_parts {
-                            let parts: Vec<&str> = attr.split(":").collect();
-                            let attr_name = parts[0];
-                            let attr_value = parts[1];
-                            attr_str.push_str(&format!(" {}=\"{}\"", attr_name, attr_value));
-                        }
-                        attrs = attr_str;
-                    } else if let Some(caps) = re2.captures(&format!("{}", tag)) {
-                        tag = caps[1].to_string();
-                        attrs = "".to_string();
+                let mut text = String::new();
+                while let Some(&c) = chars.peek() {
+                    if c.is_alphanumeric() || c == '-' {
+                        text.push(c);
+                        chars.next();
                     } else {
-                        tag.push(c);
+                        break;
                     }
-                } else if level == 1 && is_tag {
-                    content.push(c);
+                }
+                if !text.is_empty() {
+                    if chars.peek() == Some(&':') {
+                        tokens.push(Token::Attribute(text));
+                    } else {
+                        tokens.push(Token::Tag(text));
+                    }
                 }
             }
         }
     }
 
-    if level == 0 && !tag.is_empty() {
-        if tag.ends_with(".") {
-            tag.pop();
-            result.push_str(&format!("{}", tag));
-        } else if tag.trim().len() < 1 {
-            result.push_str(" ");
-        } else {
-            result.push_str(&format!("<{}{}>{}</{}>", tag, attrs, content, tag));
+    tokens
+}
+
+fn parser(tokens: Vec<Token>) -> String {
+    let mut output = String::new();
+    let mut iter = tokens.into_iter().peekable();
+    let mut current_tag = String::new();
+
+    while let Some(token) = iter.next() {
+        match token {
+            Token::Tag(tag) => {
+                current_tag = tag.clone();
+                output.push_str(&format!("<{}", tag));
+            }
+            Token::OpenBracket => {
+                while let Some(&Token::Attribute(_)) = iter.peek() {
+                    if let Token::Attribute(attr) = iter.next().unwrap() {
+                        output.push_str(&format!(" {}=\"", attr));
+                    }
+                    if let Token::Value(val) = iter.next().unwrap() {
+                        output.push_str(&format!("{}\"", val));
+                    }
+                }
+                output.push('>');
+            }
+            Token::Content(content) => {
+                output.push_str(&content);
+                output.push_str(&format!("</{}>", current_tag));
+                current_tag.clear();
+            }
+            Token::CloseBracket => {
+                if current_tag.is_empty() {
+                    if let Some(&Token::Tag(ref tag)) = iter.peek() {
+                        output.push_str(&format!("<{}>", tag));
+                        iter.next();
+                    }
+                }
+            }
+            _ => {}
         }
     }
 
-    result
+    output
 }
 
-fn generate(content: &str) -> std::io::Result<()> {
-    let mut file = fs::File::create("test/index.html")?;
-    let contents = content.to_string();
-    writeln!(&mut file, "{}", &contents.to_string())?;
-    Ok(())
+fn generate_html(input: &str) -> String {
+    let tokens = lexer(input);
+    parser(tokens)
 }
 
-fn run_string(contents: &str) -> Result<(), String> {
-    let out = compile(contents);
-    let _gen = generate(&out);
-    return Ok(());
-}
 fn main() {
-    let _ = match fs::read_to_string("test/index.kitten") {
-        Err(msg) => Err(msg.to_string()),
-        Ok(contents) => run_string(&contents),
-    };
+    let input = fs::read_to_string("test/index.kitten").expect("Could not read file");
+    let output = generate_html(&input);
+    fs::write("test/index.html", output).expect("Could not write file");
 }
