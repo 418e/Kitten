@@ -151,7 +151,20 @@ fn generate_html(input: &str) -> Result<String, String> {
 }
 
 fn main() {
-    let input = fs::read_to_string("test/index.kitten").expect("Could not read file");
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() < 3 {
+        eprintln!("Usage: kitten run <filename>");
+        return;
+    }
+    let command = &args[1];
+    let filename = &args[2];
+    if command != "run" {
+        eprintln!("Unknown command: {}", command);
+        return;
+    }
+    let path = std::env::current_dir().unwrap();
+    let input = fs::read_to_string(path.join(format!("{}.kitten", filename)))
+        .expect("Could not read file");
     let output = match generate_html(&input) {
         Ok(html) => html,
         Err(e) => {
@@ -159,5 +172,5 @@ fn main() {
             return;
         }
     };
-    fs::write("test/index.html", output).expect("Could not write file");
+    fs::write(path.join(format!("{}.html", filename)), output).expect("Could not write file");
 }

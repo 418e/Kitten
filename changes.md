@@ -1,5 +1,11 @@
 # Change Log
 
+## [[0.1.0]](https://github.com/418e/Kitten/commits/main/) - 12-12-2023
+
+First release
+
+- adde installation methods
+
 ## [[0.0.5]](https://github.com/418e/Kitten/commits/main/) - 12-12-2023
 
 - element nesting

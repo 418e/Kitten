@@ -26,4 +26,14 @@ ul[classname:list]{
 
 ## Installation
 
-Soon
+### Linux / MacOS
+
+```bash
+curl -o kitten https://github.com/418e/Kitten/releases/download/0.1.0/kitten
+sudo mv kitten /usr/local/bin/
+sudo chmod +x /usr/local/bin/kitten
+```
+
+### Windows
+
+Download and run `install.py`
