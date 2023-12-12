@@ -10,14 +10,18 @@
 
 ## Usage / Examples
 
-```html
-// kitten 
-a[href:/]{link} 
-div[]{hi}
+```kitten
+ul[classname:list]{
+    li[key:1 classname:item]{"hello"}
+    li[key:2 classname:item]{"kitten"}
+}
+```
 
-// html
-<a href="/">link</a>
-<div>hi</div>
+```html
+<ul classname="list">
+  <li key="1" classname="item">hello</li>
+  <li key="2" classname="item">kitten</li>
+</ul>
 ```
 
 ## Installation

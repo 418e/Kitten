@@ -1,5 +1,10 @@
 # Change Log
 
+## [[0.0.5]](https://github.com/418e/Kitten/commits/main/) - 12-12-2023
+
+- element nesting
+- updated syntax `div[]{hello kitten}` => `div[]{"hello kitten"}`
+
 ## [[0.0.4]](https://github.com/418e/Kitten/commits/main/) - 11-12-2023
 
 - fixed errs

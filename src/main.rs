@@ -5,6 +5,8 @@ enum Token {
     Tag(String),
     OpenBracket,
     CloseBracket,
+    OpenCurlyBracket,
+    CloseCurlyBracket,
     Attribute(String),
     Value(String),
     Content(String),
@@ -25,17 +27,35 @@ fn lexer(input: &str) -> Vec<Token> {
                 chars.next();
             }
             '{' => {
+                tokens.push(Token::OpenCurlyBracket);
                 chars.next();
-                let mut content = String::new();
                 while let Some(&c) = chars.peek() {
-                    if c != '}' {
-                        content.push(c);
+                    if c == ' ' || c == '\n' || c == '\t' {
                         chars.next();
                     } else {
                         break;
                     }
                 }
-                tokens.push(Token::Content(content));
+                if let Some(&c) = chars.peek() {
+                    if c == '"' {
+                        chars.next();
+                        let mut content = String::new();
+                        while let Some(&c) = chars.peek() {
+                            if c != '"' {
+                                content.push(c);
+                                chars.next();
+                            } else {
+                                chars.next(); // consume closing "
+                                break;
+                            }
+                        }
+                        tokens.push(Token::Content(content.trim().to_string()));
+                        // trim the content
+                    }
+                }
+            }
+            '}' => {
+                tokens.push(Token::CloseCurlyBracket);
                 chars.next();
             }
             ':' => {
@@ -85,6 +105,19 @@ fn parser(tokens: Vec<Token>) -> Result<String, String> {
 
     while let Some(token) = iter.next() {
         match token {
+            Token::OpenCurlyBracket => {
+                output.push('>');
+                if let Some(&Token::Content(_)) = iter.peek() {
+                    if let Token::Content(content) = iter.next().unwrap() {
+                        output.push_str(&content);
+                    }
+                }
+            }
+            Token::CloseCurlyBracket => {
+                if let Some(tag) = tag_stack.pop() {
+                    output.push_str(&format!("</{}>", tag));
+                }
+            }
             Token::Tag(tag) => {
                 tag_stack.push(tag.clone());
                 output.push_str(&format!("<{}", tag));
@@ -100,13 +133,6 @@ fn parser(tokens: Vec<Token>) -> Result<String, String> {
                     }
                 }
                 output.push_str(&attributes);
-                output.push('>');
-            }
-            Token::Content(content) => {
-                output.push_str(&content);
-                if let Some(tag) = tag_stack.pop() {
-                    output.push_str(&format!("</{}>", tag));
-                }
             }
             _ => {}
         }

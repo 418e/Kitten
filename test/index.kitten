@@ -1,1 +1,4 @@
-div[]{hi}div[]{hi}
+ul[classname:list]{
+    li[key:1 classname:item]{"hello"}
+    li[key:2 classname:item]{"kitten"}
+}
