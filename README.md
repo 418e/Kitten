@@ -31,7 +31,7 @@ ul[classname:list]{
 ### Linux / MacOS
 
 ```bash
-curl -o kitten https://github.com/418e/Kitten/releases/download/0.1.0/kitten
+curl -o kitten https://github.com/418e/Kitten/releases/download/0.1.2/kitten
 sudo mv kitten /usr/local/bin/
 sudo chmod +x /usr/local/bin/kitten
 ```
