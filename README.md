@@ -24,6 +24,8 @@ ul[classname:list]{
 </ul>
 ```
 
+[see more](/docs/index.kitten)
+
 ## Installation
 
 ### Linux / MacOS
@@ -41,5 +43,5 @@ Download and run `install.py`
 ## Running
 
 ```
-kitten run main
+kitten run <filename>
 ```

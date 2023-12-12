@@ -1,5 +1,11 @@
 # Change Log
 
+## [[0.1.2]](https://github.com/418e/Kitten/commits/main/) - 12-12-2023
+
+- fixed errs
+- added extension
+- updated docs
+
 ## [[0.1.1]](https://github.com/418e/Kitten/commits/main/) - 12-12-2023
 
 - added commenting `# comment`

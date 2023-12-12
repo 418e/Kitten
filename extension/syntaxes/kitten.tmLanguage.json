@@ -1,0 +1,44 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "kitten",
+  "patterns": [
+    {
+      "include": "#tag"
+    },
+    {
+      "include": "#attribute"
+    },
+    {
+      "include": "#value"
+    },
+    {
+      "include": "#content"
+    }
+  ],
+  "repository": {
+    "tag": {
+      "name": "entity.name.tag.kitten",
+      "match": "\\b([a-z]+)(?=\\[|\\{)"
+    },
+    "attribute": {
+      "name": "entity.other.attribute-name.kitten",
+      "match": "\\b([a-z]+)(?=:)"
+    },
+    "value": {
+      "name": "string.unquoted.kitten",
+      "match": "(?<=:)(\\S+)(?=\\s|\\])"
+    },
+    "content": {
+      "name": "string.quoted.double.kitten",
+      "begin": "\\{\"",
+      "end": "\"\\}",
+      "patterns": [
+        {
+          "name": "constant.character.escape.kitten",
+          "match": "\\\\."
+        }
+      ]
+    }
+  },
+  "scopeName": "source.kitten"
+}

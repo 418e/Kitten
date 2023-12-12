@@ -113,20 +113,12 @@ fn parser(tokens: Vec<Token>) -> Result<String, String> {
     let mut output = String::new();
     let mut iter = tokens.into_iter().peekable();
     let mut tag_stack = Vec::new();
-
+    let self_closing_tags = vec![
+        "img", "br", "hr", "input", "meta", "area", "base", "col", "embed", "link", "meta",
+        "param", "source", "track", "wbr",
+    ];
     while let Some(token) = iter.next() {
         match token {
-            Token::Hash => {
-                continue;
-            }
-            Token::OpenCurlyBracket => {
-                output.push('>');
-                if let Some(&Token::Content(_)) = iter.peek() {
-                    if let Token::Content(content) = iter.next().unwrap() {
-                        output.push_str(&content);
-                    }
-                }
-            }
             Token::Tag(tag) => {
                 tag_stack.push(tag.clone());
                 output.push_str(&format!("<{}", tag));
@@ -144,12 +136,27 @@ fn parser(tokens: Vec<Token>) -> Result<String, String> {
                 output.push_str(&attributes);
             }
             Token::CloseBracket => {
-                if let Some(tag) = tag_stack.pop() {
-                    if iter.peek() == Some(&Token::OpenCurlyBracket) || matches!(iter.peek(), Some(Token::Attribute(_))) {
-                        output.push_str(&format!("</{}>", tag));
-                    } else {
+                if let Some(tag) = tag_stack.last() {
+                    if iter.peek() == Some(&Token::OpenCurlyBracket)
+                        || matches!(iter.peek(), Some(Token::Attribute(_)))
+                    {
+                        output.push('>');
+                    } else if self_closing_tags.contains(&tag.as_str()) {
                         output.push_str(" />");
+                        let _ = tag_stack.pop(); // Remove self-closing tag from stack
                     }
+                }
+            }
+            Token::OpenCurlyBracket => {
+                if let Some(&Token::Content(_)) = iter.peek() {
+                    if let Token::Content(content) = iter.next().unwrap() {
+                        output.push_str(&content);
+                    }
+                }
+            }
+            Token::CloseCurlyBracket => {
+                if let Some(tag) = tag_stack.pop() {
+                    output.push_str(&format!("</{}>", tag));
                 }
             }
             _ => {}

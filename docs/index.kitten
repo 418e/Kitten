@@ -1,1 +1,18 @@
-image[src:hi]
+# creating element
+
+div[]{"hi"}
+
+# adding attributes
+
+a[href:/about ]{"about"}
+
+# nested elements
+
+ul[]{
+    li[key:0 classname:item ]{"item1"}
+    li[key:1 classname:item ]{"item2"}
+}
+
+# self-closed elements
+
+img[src:/ ]
