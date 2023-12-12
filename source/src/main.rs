@@ -3,6 +3,7 @@ use std::fs;
 #[derive(PartialEq)]
 enum Token {
     Tag(String),
+    Hash,
     OpenBracket,
     CloseBracket,
     OpenCurlyBracket,
@@ -18,6 +19,16 @@ fn lexer(input: &str) -> Vec<Token> {
 
     while let Some(&c) = chars.peek() {
         match c {
+            '#' => {
+                while let Some(&c) = chars.peek() {
+                    if c != '\n' {
+                        tokens.push(Token::Hash);
+                        chars.next();
+                    } else {
+                        break;
+                    }
+                }
+            }
             '[' => {
                 tokens.push(Token::OpenBracket);
                 chars.next();
@@ -105,17 +116,15 @@ fn parser(tokens: Vec<Token>) -> Result<String, String> {
 
     while let Some(token) = iter.next() {
         match token {
+            Token::Hash => {
+                continue;
+            }
             Token::OpenCurlyBracket => {
                 output.push('>');
                 if let Some(&Token::Content(_)) = iter.peek() {
                     if let Token::Content(content) = iter.next().unwrap() {
                         output.push_str(&content);
                     }
-                }
-            }
-            Token::CloseCurlyBracket => {
-                if let Some(tag) = tag_stack.pop() {
-                    output.push_str(&format!("</{}>", tag));
                 }
             }
             Token::Tag(tag) => {
@@ -133,6 +142,15 @@ fn parser(tokens: Vec<Token>) -> Result<String, String> {
                     }
                 }
                 output.push_str(&attributes);
+            }
+            Token::CloseBracket => {
+                if let Some(tag) = tag_stack.pop() {
+                    if iter.peek() == Some(&Token::OpenCurlyBracket) || matches!(iter.peek(), Some(Token::Attribute(_))) {
+                        output.push_str(&format!("</{}>", tag));
+                    } else {
+                        output.push_str(" />");
+                    }
+                }
             }
             _ => {}
         }
@@ -163,8 +181,8 @@ fn main() {
         return;
     }
     let path = std::env::current_dir().unwrap();
-    let input = fs::read_to_string(path.join(format!("{}.kitten", filename)))
-        .expect("Could not read file");
+    let input =
+        fs::read_to_string(path.join(format!("{}.kitten", filename))).expect("Could not read file");
     let output = match generate_html(&input) {
         Ok(html) => html,
         Err(e) => {

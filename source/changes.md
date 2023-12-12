@@ -1,5 +1,10 @@
 # Change Log
 
+## [[0.1.1]](https://github.com/418e/Kitten/commits/main/) - 12-12-2023
+
+- added commenting `# comment`
+- added self-closing tags `img[], meta[]` => `<image>, <meta>`
+
 ## [[0.1.0]](https://github.com/418e/Kitten/commits/main/) - 12-12-2023
 
 First release
