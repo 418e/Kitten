@@ -37,3 +37,9 @@ sudo chmod +x /usr/local/bin/kitten
 ### Windows
 
 Download and run `install.py`
+
+## Running
+
+```
+kitten run main
+```
