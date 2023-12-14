@@ -16,3 +16,9 @@ ul[]{
 # self-closed elements
 
 img[src:/ ]
+
+# importing
+
+import[from:element element:$1 as:Hi ]
+
+Hi[]{}

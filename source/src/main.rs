@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 
 #[derive(PartialEq)]
@@ -8,6 +9,11 @@ enum Token {
     CloseBracket,
     OpenCurlyBracket,
     CloseCurlyBracket,
+    Import {
+        from: String,
+        element: String,
+        name: String,
+    },
     Attribute(String),
     Value(String),
     Content(String),
@@ -16,7 +22,6 @@ enum Token {
 fn lexer(input: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
     let mut chars = input.chars().peekable();
-
     while let Some(&c) = chars.peek() {
         match c {
             '#' => {
@@ -28,6 +33,30 @@ fn lexer(input: &str) -> Vec<Token> {
                         break;
                     }
                 }
+            }
+            'i' if chars.clone().collect::<String>().starts_with("import[") => {
+                let mut import_str = String::new();
+                while let Some(&c) = chars.peek() {
+                    if c != ']' {
+                        import_str.push(c);
+                        chars.next();
+                    } else {
+                        chars.next(); // consume ']'
+                        break;
+                    }
+                }
+                let import_parts: Vec<&str> = import_str.split_whitespace().collect();
+                let from_parts: Vec<&str> = import_parts[0].split(':').collect();
+                let from = from_parts[1].to_string();
+                let element_parts: Vec<&str> = import_parts[1].split(':').collect();
+                let element = element_parts[1].to_string();
+                let name_parts: Vec<&str> = import_parts[2].split(':').collect();
+                let name = name_parts[1].to_string();
+                tokens.push(Token::Import {
+                    from,
+                    element,
+                    name,
+                });
             }
             '[' => {
                 tokens.push(Token::OpenBracket);
@@ -113,6 +142,7 @@ fn parser(tokens: Vec<Token>) -> Result<String, String> {
     let mut output = String::new();
     let mut iter = tokens.into_iter().peekable();
     let mut tag_stack = Vec::new();
+    let mut imports: HashMap<String, String> = HashMap::new();
     let self_closing_tags = vec![
         "img", "br", "hr", "input", "meta", "area", "base", "col", "embed", "link", "meta",
         "param", "source", "track", "wbr",
@@ -120,8 +150,12 @@ fn parser(tokens: Vec<Token>) -> Result<String, String> {
     while let Some(token) = iter.next() {
         match token {
             Token::Tag(tag) => {
-                tag_stack.push(tag.clone());
-                output.push_str(&format!("<{}", tag));
+                if let Some(imported_html) = imports.get(&tag.clone()) {
+                    output.push_str(imported_html);
+                } else {
+                    tag_stack.push(tag.clone());
+                    output.push_str(&format!("<{}", tag));
+                }
             }
             Token::OpenBracket => {
                 let mut attributes = String::new();
@@ -134,6 +168,28 @@ fn parser(tokens: Vec<Token>) -> Result<String, String> {
                     }
                 }
                 output.push_str(&attributes);
+            }
+            Token::Import {
+                from,
+                element: _,
+                name,
+            } => {
+                let path = std::env::current_dir().unwrap();
+                let filename = if from.starts_with("/") {
+                    from.strip_prefix("/").unwrap()
+                } else {
+                    &from
+                };
+                let input = fs::read_to_string(path.join(format!("./{}.kitten", filename)))
+                    .expect("Could not read file");
+                let output = match generate_html(&input) {
+                    Ok(html) => html,
+                    Err(e) => {
+                        eprintln!("Error: {}", e);
+                        return Err(e);
+                    }
+                };
+                imports.insert(name.clone(), output.clone()); // Insert the output into the HashMap
             }
             Token::CloseBracket => {
                 if let Some(tag) = tag_stack.last() {
@@ -188,8 +244,11 @@ fn main() {
         return;
     }
     let path = std::env::current_dir().unwrap();
-    let input =
-        fs::read_to_string(path.join(format!("{}.kitten", filename))).expect("Could not read file");
+    let input = if filename.ends_with(".kitten") {
+        fs::read_to_string(path.join(filename)).expect("Could not read file")
+    } else {
+        fs::read_to_string(path.join(format!("{}.kitten", filename))).expect("Could not read file")
+    };
     let output = match generate_html(&input) {
         Ok(html) => html,
         Err(e) => {
