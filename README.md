@@ -6,29 +6,11 @@
 
 #### HTML template compiler
 
+Created to get read of closing tags, simplify syntax and replace so many javascript libraries/frameworks
+
 </div>
 
-## Usage / Examples
-
-```kitten
-ul[classname:list]{
-    li[key:1 classname:item]{"hello"}
-    li[key:2 classname:item]{"kitten"}
-}
-```
-
-```html
-<ul classname="list">
-  <li key="1" classname="item">hello</li>
-  <li key="2" classname="item">kitten</li>
-</ul>
-```
-
-[see more](/docs/index.kitten)
-
 ## Installation
-
-### Linux / MacOS
 
 ```bash
 curl -o kitten https://tronlang.org/kitten
@@ -36,12 +18,36 @@ sudo mv kitten /usr/local/bin/
 sudo chmod +x /usr/local/bin/kitten
 ```
 
-### Windows
+## Usage/Examples
 
-Download and run `install.py`
+```kitten
+import[from:components/nav element:$1 as:Nav ]
+import[from:components/footer element:$2 as:Footer ]
 
-## Running
-
+Nav[]
+div[classname:header]{
+   p[]{"Welcome to the Kitten!"}
+   span[]{
+    function(){
+      return localStorage.getItem("name");
+    }
+  }
+}
+Footer[]
 ```
+
+- `import[from:components/nav element:$1 as:Nav ]` - imports element with key:$1 attribute from `components/nav.kitten` as `Nav[]`
+- `div[classname:header]{}` same as <div classname="header"></div>
+- `function(){return localStorage.getItem("name")}` - returns item "name" from localstorage
+
+## Compiling
+
+```bash
 kitten run <filename>
 ```
+
+- `<filename>` - name of the `.kitten` file (`main.kitten`, `index.kitten`, `blog.kitten`)
+
+## Documentation
+
+Soon

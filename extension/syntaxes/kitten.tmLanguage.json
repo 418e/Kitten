@@ -13,6 +13,9 @@
     },
     {
       "include": "#content"
+    },
+    {
+      "include": "#function"
     }
   ],
   "repository": {
@@ -27,6 +30,10 @@
     "value": {
       "name": "string.unquoted.kitten",
       "match": "(?<=:)(\\S+)(?=\\s|\\])"
+    },
+    "function": {
+      "name": "entity.name.function",
+      "match": "function()"
     },
     "content": {
       "name": "string.quoted.double.kitten",

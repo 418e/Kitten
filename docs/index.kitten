@@ -22,3 +22,10 @@ img[src:/ ]
 import[from:element element:$1 as:Hi ]
 
 Hi[]{}
+
+# functions
+
+function(){
+    let x = 5;
+    return x;
+}

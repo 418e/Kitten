@@ -1,3 +1,4 @@
+use quick_js::{Context, JsValue};
 use std::collections::HashMap;
 use std::fs;
 
@@ -14,9 +15,45 @@ enum Token {
         element: String,
         name: String,
     },
+    Function(String),
     Attribute(String),
     Value(String),
     Content(String),
+}
+
+#[derive(Debug)]
+enum JsExecutionError {
+    ContextError(quick_js::ContextError),
+    ExecutionError(quick_js::ExecutionError),
+    UnsupportedReturnType,
+}
+
+impl From<quick_js::ContextError> for JsExecutionError {
+    fn from(error: quick_js::ContextError) -> Self {
+        JsExecutionError::ContextError(error)
+    }
+}
+
+impl From<quick_js::ExecutionError> for JsExecutionError {
+    fn from(error: quick_js::ExecutionError) -> Self {
+        JsExecutionError::ExecutionError(error)
+    }
+}
+
+fn execute_js(js_code: &str) -> Result<String, JsExecutionError> {
+    let context = Context::new().map_err(JsExecutionError::from)?;
+    let js_codes = format!(
+        "{} kitten();",
+        js_code.replace("ffunction", "function kitten")
+    );
+    let result = context.eval(&js_codes).map_err(JsExecutionError::from)?;
+    let stringified_result = match result {
+        JsValue::String(s) => s,
+        JsValue::Int(i) => i.to_string(),
+        JsValue::Float(f) => f.to_string(),
+        _ => return Err(JsExecutionError::UnsupportedReturnType),
+    };
+    Ok(stringified_result)
 }
 
 fn lexer(input: &str) -> Vec<Token> {
@@ -57,6 +94,20 @@ fn lexer(input: &str) -> Vec<Token> {
                     element,
                     name,
                 });
+            }
+            'f' => {
+                let mut function_str = String::from("f");
+                while let Some(&c) = chars.peek() {
+                    if c != '}' {
+                        function_str.push(c);
+                        chars.next();
+                    } else {
+                        function_str.push(c);
+                        chars.next(); // consume '}'
+                        break;
+                    }
+                }
+                tokens.push(Token::Function(function_str));
             }
             '[' => {
                 tokens.push(Token::OpenBracket);
@@ -168,6 +219,13 @@ fn parser(tokens: Vec<Token>) -> Result<String, String> {
                     }
                 }
                 output.push_str(&attributes);
+            }
+            Token::Function(function) => {
+                let result = execute_js(&function);
+                match result {
+                    Ok(value) => output.push_str(&format!("{:?}", value)),
+                    Err(e) => eprintln!("Error executing JS code: {:?}", e),
+                }
             }
             Token::Import {
                 from,

@@ -1,5 +1,10 @@
 # Change Log
 
+## [[0.1.4]](https://github.com/418e/Kitten/commits/main/) - 14-12-2023
+
+- added functions
+- fixed errs
+
 ## [[0.1.3]](https://github.com/418e/Kitten/commits/main/) - 14-12-2023
 
 - added element importing (`import[from:<location> element:<element key> as:<import name> ]`)
