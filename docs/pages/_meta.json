@@ -1,7 +1,12 @@
 {
   "index": "Welcome",
+  "changelog": {
+    "type": "page",
+    "title": "CHANGELOG"
+  },
   "installation": "Installation",
   "extension": "Extension",
+  "cli": "CLI",
   "---": {
     "type": "separator"
   },

@@ -1,6 +1,7 @@
 use quick_js::{Context, JsValue};
 use std::collections::HashMap;
 use std::fs;
+use std::io::Write;
 
 #[derive(PartialEq)]
 enum Token {
@@ -291,28 +292,86 @@ fn generate_html(input: &str) -> Result<String, String> {
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() < 3 {
-        eprintln!("Usage: kitten run <filename>");
+    if args.len() < 2 {
+        eprintln!("Usage: kitten <command> [<args>]");
         return;
     }
     let command = &args[1];
-    let filename = &args[2];
-    if command != "run" {
-        eprintln!("Unknown command: {}", command);
-        return;
-    }
     let path = std::env::current_dir().unwrap();
-    let input = if filename.ends_with(".kitten") {
-        fs::read_to_string(path.join(filename)).expect("Could not read file")
-    } else {
-        fs::read_to_string(path.join(format!("{}.kitten", filename))).expect("Could not read file")
-    };
-    let output = match generate_html(&input) {
-        Ok(html) => html,
-        Err(e) => {
-            eprintln!("Error: {}", e);
+
+    match command.as_str() {
+        "help" => {
+            println!("kitten help - display commands");
+            println!("kitten run <filename> - run a .kitten file");
+            println!("kitten update - update Kitten's version");
+            println!("kitten version - display kitten version");
+            println!("kitten new <name> - initialize new project");
+        }
+        "run" => {
+            if args.len() < 3 {
+                eprintln!("Usage: kitten run <filename>");
+                return;
+            }
+            let filename = &args[2];
+            let input = if filename.ends_with(".kitten") {
+                fs::read_to_string(path.join(filename)).expect("Could not read file")
+            } else {
+                fs::read_to_string(path.join(format!("{}.kitten", filename)))
+                    .expect("Could not read file")
+            };
+            let output = match generate_html(&input) {
+                Ok(html) => html,
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    return;
+                }
+            };
+            fs::write(path.join(format!("{}.html", filename)), output)
+                .expect("Could not write file");
+        }
+        "version" => {
+            println!("\nKitten version - 0.1.5")
+        }
+        "update" => {
+            println!("\nDownloading latest version...");
+            std::process::Command::new("curl")
+                .arg("-o")
+                .arg("kitten")
+                .arg("https://tronlang.org/kitten")
+                .output()
+                .expect("Failed to execute command");
+
+            std::process::Command::new("sudo")
+                .arg("mv")
+                .arg("kitten")
+                .arg("/usr/local/bin/")
+                .output()
+                .expect("Failed to execute command");
+
+            std::process::Command::new("sudo")
+                .arg("chmod")
+                .arg("+x")
+                .arg("/usr/local/bin/kitten")
+                .output()
+                .expect("Failed to execute command");
+
+            println!("\nLatest version installed successfully")
+        }
+        "new" => {
+            if args.len() < 3 {
+                eprintln!("Usage: kitten new <name>");
+                return;
+            }
+            let dir_name = &args[2];
+            std::fs::create_dir(dir_name).expect("Could not create directory");
+            let mut file = std::fs::File::create(format!("{}/index.kitten", dir_name))
+                .expect("Could not create file");
+            file.write_all(b"hello world")
+                .expect("Could not write to file");
+        }
+        _ => {
+            eprintln!("Unknown command: {}", command);
             return;
         }
-    };
-    fs::write(path.join(format!("{}.html", filename)), output).expect("Could not write file");
+    }
 }

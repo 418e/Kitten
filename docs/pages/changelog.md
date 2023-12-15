@@ -1,5 +1,9 @@
 # Change Log
 
+## [[0.1.5]](https://github.com/418e/Kitten/commits/main/) - 15-12-2023
+
+- added new cli commands
+
 ## [[0.1.4]](https://github.com/418e/Kitten/commits/main/) - 14-12-2023
 
 - added functions
