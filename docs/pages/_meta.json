@@ -1,0 +1,11 @@
+{
+  "index": "Welcome",
+  "installation": "Installation",
+  "extension": "Extension",
+  "---": {
+    "type": "separator"
+  },
+  "syntax": "Syntax",
+  "components": "Components",
+  "functions": "Functions"
+}
