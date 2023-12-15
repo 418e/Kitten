@@ -13,7 +13,7 @@ Created to get read of closing tags, simplify syntax and replace so many javascr
 ## Installation
 
 ```bash
-curl -o kitten https://tronlang.org/kitten
+curl -o kitten https://kitten.tronlang.org/v/latest
 sudo mv kitten /usr/local/bin/
 sudo chmod +x /usr/local/bin/kitten
 ```

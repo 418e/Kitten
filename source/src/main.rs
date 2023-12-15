@@ -337,7 +337,7 @@ fn main() {
             std::process::Command::new("curl")
                 .arg("-o")
                 .arg("kitten")
-                .arg("https://tronlang.org/kitten")
+                .arg("https://kitten.tronlang.org/v/latest")
                 .output()
                 .expect("Failed to execute command");
 

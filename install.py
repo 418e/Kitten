@@ -1,7 +1,7 @@
 import requests
 import os
 
-url = 'https://tronlang.org/kitten'
+url = 'https://kitten.tronlang.org/v/latest'
 response = requests.get(url)
 open('kitten.exe', 'wb').write(response.content)
 

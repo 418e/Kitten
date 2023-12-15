@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Download the binary
-curl -o kitten https://tronlang.org/kitten
+curl -o kittenhttps://kitten.tronlang.org/v/latest
 
 # Move the binary to /usr/local/bin
 sudo mv kitten /usr/local/bin/
