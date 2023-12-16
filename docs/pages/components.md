@@ -11,7 +11,7 @@ div[key:$hello;]{"Hello!"}
 `index.kitten`
 
 ```
-import[from:$hello; element:$1; as:Hello; ]
+import[from:hello; element:$hello; as:Hello; ]
 
 div[]{
     Hello[]{}
