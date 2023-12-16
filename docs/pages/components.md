@@ -5,13 +5,13 @@ Creating elements as components to sharing across files is very simple in Kitten
 `hello.kitten`
 
 ```
-div[key:$hello]{"Hello!"}
+div[key:$hello;]{"Hello!"}
 ```
 
 `index.kitten`
 
 ```
-import[from:$hello element:$1 as:Hello ]
+import[from:$hello; element:$1; as:Hello; ]
 
 div[]{
     Hello[]{}

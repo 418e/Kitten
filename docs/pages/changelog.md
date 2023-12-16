@@ -1,5 +1,35 @@
 # Change Log
 
+## [[0.2.0]](https://github.com/418e/Kitten/commits/main/) - 15-12-2023
+
+✨ What's New?
+
+- CLI style
+
+✏️ Changes
+
+- changed `function` syntax:
+
+```
+# old
+
+function(){
+    ...
+}
+
+# new
+
+(){
+
+}1
+```
+
+- changed attribute syntax: `div[attribute:value]` => `div[attribute:value;]`
+
+🐛 Bugs
+
+- fixed `function` bugs
+
 ## [[0.1.5]](https://github.com/418e/Kitten/commits/main/) - 15-12-2023
 
 - added new cli commands

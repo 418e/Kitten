@@ -6,7 +6,7 @@ Functions are used for making javascript calculations inside `.kitten` file.
 
 ```
 div[]{
-    function(){
+    (){
         let x = 5;
         return x + 5;
     }

@@ -1,3 +1,4 @@
+use clap::{App, Arg, SubCommand};
 use quick_js::{Context, JsValue};
 use std::collections::HashMap;
 use std::fs;
@@ -43,10 +44,7 @@ impl From<quick_js::ExecutionError> for JsExecutionError {
 
 fn execute_js(js_code: &str) -> Result<String, JsExecutionError> {
     let context = Context::new().map_err(JsExecutionError::from)?;
-    let js_codes = format!(
-        "{} kitten();",
-        js_code.replace("ffunction", "function kitten")
-    );
+    let js_codes = format!("let kitten = function(){}; kitten();", js_code);
     let result = context.eval(&js_codes).map_err(JsExecutionError::from)?;
     let stringified_result = match result {
         JsValue::String(s) => s,
@@ -96,8 +94,8 @@ fn lexer(input: &str) -> Vec<Token> {
                     name,
                 });
             }
-            'f' => {
-                let mut function_str = String::from("f");
+            '(' if chars.clone().collect::<String>().starts_with("()") => {
+                let mut function_str = String::from("()");
                 while let Some(&c) = chars.peek() {
                     if c != '}' {
                         function_str.push(c);
@@ -154,10 +152,11 @@ fn lexer(input: &str) -> Vec<Token> {
                 chars.next();
                 let mut value = String::new();
                 while let Some(&c) = chars.peek() {
-                    if c != ' ' && c != ']' {
+                    if c != ';' {
                         value.push(c);
                         chars.next();
                     } else {
+                        chars.next(); // consume ';'
                         break;
                     }
                 }
@@ -222,7 +221,7 @@ fn parser(tokens: Vec<Token>) -> Result<String, String> {
                 output.push_str(&attributes);
             }
             Token::Function(function) => {
-                let result = execute_js(&function);
+                let result = execute_js(&function.trim_start_matches("()"));
                 match result {
                     Ok(value) => output.push_str(&format!("{:?}", value)),
                     Err(e) => eprintln!("Error executing JS code: {:?}", e),
@@ -259,6 +258,8 @@ fn parser(tokens: Vec<Token>) -> Result<String, String> {
                     } else if self_closing_tags.contains(&tag.as_str()) {
                         output.push_str(" />");
                         let _ = tag_stack.pop(); // Remove self-closing tag from stack
+                    } else {
+                        output.push('>');
                     }
                 }
             }
@@ -296,22 +297,37 @@ fn main() {
         eprintln!("Usage: kitten <command> [<args>]");
         return;
     }
-    let command = &args[1];
     let path = std::env::current_dir().unwrap();
+    let matches = App::new("Kitten")
+        .version("0.2.0")
+        .author("418e github.com/418e")
+        .about("Kitten is an HTML template compiler")
+        .subcommand(
+            SubCommand::with_name("run")
+                .about("Runs a .kitten file")
+                .arg(
+                    Arg::with_name("filename")
+                        .help("The .kitten file to run")
+                        .required(true)
+                        .index(1),
+                ),
+        )
+        .subcommand(SubCommand::with_name("version").about("Displays the version of Kitten"))
+        .subcommand(SubCommand::with_name("update").about("Updates Kitten to the latest version"))
+        .subcommand(
+            SubCommand::with_name("new")
+                .about("Initializes a new project")
+                .arg(
+                    Arg::with_name("name")
+                        .help("The name of the new project")
+                        .required(true)
+                        .index(1),
+                ),
+        )
+        .get_matches();
 
-    match command.as_str() {
-        "help" => {
-            println!("kitten help - display commands");
-            println!("kitten run <filename> - run a .kitten file");
-            println!("kitten update - update Kitten's version");
-            println!("kitten version - display kitten version");
-            println!("kitten new <name> - initialize new project");
-        }
-        "run" => {
-            if args.len() < 3 {
-                eprintln!("Usage: kitten run <filename>");
-                return;
-            }
+    if let Some(matches) = matches.subcommand_matches("run") {
+        if let Some(_filename) = matches.value_of("filename") {
             let filename = &args[2];
             let input = if filename.ends_with(".kitten") {
                 fs::read_to_string(path.join(filename)).expect("Could not read file")
@@ -329,49 +345,38 @@ fn main() {
             fs::write(path.join(format!("{}.html", filename)), output)
                 .expect("Could not write file");
         }
-        "version" => {
-            println!("\nKitten version - 0.1.5")
-        }
-        "update" => {
-            println!("\nDownloading latest version...");
-            std::process::Command::new("curl")
-                .arg("-o")
-                .arg("kitten")
-                .arg("https://kitten.tronlang.org/v/latest")
-                .output()
-                .expect("Failed to execute command");
+    } else if matches.subcommand_matches("version").is_some() {
+        println!("\nv0.2.0")
+    } else if matches.subcommand_matches("update").is_some() {
+        println!("\nDownloading latest version...");
+        std::process::Command::new("curl")
+            .arg("-o")
+            .arg("kitten")
+            .arg("https://kitten.tronlang.org/v/latest")
+            .output()
+            .expect("Failed to execute command");
+        std::process::Command::new("sudo")
+            .arg("mv")
+            .arg("kitten")
+            .arg("/usr/local/bin/")
+            .output()
+            .expect("Failed to execute command");
+        std::process::Command::new("sudo")
+            .arg("chmod")
+            .arg("+x")
+            .arg("/usr/local/bin/kitten")
+            .output()
+            .expect("Failed to execute command");
 
-            std::process::Command::new("sudo")
-                .arg("mv")
-                .arg("kitten")
-                .arg("/usr/local/bin/")
-                .output()
-                .expect("Failed to execute command");
-
-            std::process::Command::new("sudo")
-                .arg("chmod")
-                .arg("+x")
-                .arg("/usr/local/bin/kitten")
-                .output()
-                .expect("Failed to execute command");
-
-            println!("\nLatest version installed successfully")
-        }
-        "new" => {
-            if args.len() < 3 {
-                eprintln!("Usage: kitten new <name>");
-                return;
-            }
+        println!("\nLatest version installed successfully")
+    } else if let Some(matches) = matches.subcommand_matches("new") {
+        if let Some(_name) = matches.value_of("name") {
             let dir_name = &args[2];
             std::fs::create_dir(dir_name).expect("Could not create directory");
             let mut file = std::fs::File::create(format!("{}/index.kitten", dir_name))
                 .expect("Could not create file");
-            file.write_all(b"hello world")
+            file.write_all(b"div[]{\"hello world\"}")
                 .expect("Could not write to file");
-        }
-        _ => {
-            eprintln!("Unknown command: {}", command);
-            return;
         }
     }
 }

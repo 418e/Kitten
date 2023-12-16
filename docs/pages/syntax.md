@@ -51,7 +51,7 @@ In Kitten, you can add attributes to an element like this:
 `index.kitten`:
 
 ```
-a[href:/about classname:link]{"about"}
+a[href:/about; classname:link;]{"about"}
 ```
 
 `index.html`:
@@ -67,13 +67,13 @@ Not every HTML element has a closing tag. To write such elements in Kitten, you 
 `index.kitten`:
 
 ```
-img[src:/logo.png alt:logo]
+img[src:/logo.png; alt:logo;]
 ```
 
 `index.html`:
 
 ```
-<img src="/logo.png" alt="logo" />
+<img src="/logo.png"; alt="logo"; />
 ```
 
 Please also note that Kitten is in the stage of early development and it may cause features and syntax to change drastically.

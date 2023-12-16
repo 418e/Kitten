@@ -1,6 +1,6 @@
 [package]
 name = "kitten"
-version = "0.1.5"
+version = "0.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 quick-js = "0.4.0"
 serde_json = "1.0"
+regex = "1"
+clap = "2.0.0"
