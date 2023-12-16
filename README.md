@@ -21,14 +21,14 @@ sudo chmod +x /usr/local/bin/kitten
 ## Usage/Examples
 
 ```kitten
-import[from:components/nav element:$1 as:Nav ]
-import[from:components/footer element:$2 as:Footer ]
+import[from:components/nav; element:$1; as:Nav; ]
+import[from:components/footer; element:$2; as:Footer; ]
 
 Nav[]
-div[classname:header]{
+div[classname:header;]{
    p[]{"Welcome to the Kitten!"}
    span[]{
-    function(){
+    (){
       return localStorage.getItem("name");
     }
   }
@@ -36,9 +36,9 @@ div[classname:header]{
 Footer[]
 ```
 
-- `import[from:components/nav element:$1 as:Nav ]` - imports element with key:$1 attribute from `components/nav.kitten` as `Nav[]`
+- `import[from:components/nav; element:$1; as:Nav; ]` - imports element with key:$1 attribute from `components/nav.kitten` as `Nav[]`
 - `div[classname:header]{}` same as <div classname="header"></div>
-- `function(){return localStorage.getItem("name")}` - returns item "name" from localstorage
+- `(){return localStorage.getItem("name")}` - returns item "name" from localstorage
 
 ## Compiling
 
